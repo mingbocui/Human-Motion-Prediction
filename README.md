@@ -38,7 +38,7 @@ DIS_FF(6) represents we deploy 6 layers Feedforward network for Discriminator; \
 L2_Weight(0.0) represents the ratio of L2 loss in our objective loss function is 0, namely we just use adversarial loss 
 
 
-### Command Options
+## Command Options
 
 - `--best_k`: here we leave out the variety loss and set it to 1
 - `--l2_loss_weight`: weight of l2 loss in the loss function, here we did not involve any ratio of l2 loss
