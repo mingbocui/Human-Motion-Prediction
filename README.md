@@ -29,13 +29,13 @@ $python scripts/cgs_train.py --best_k 1 \
 --dataset_name 'three_traj'
 
 by running above commands, you will get images stored under the images/ folder with folder name like \
-three_traj_EN_MLP(3)_DE_MLP(4)_DIS_FF(6)_L2_Weight(0.0) \
+three_traj_EN_MLP(3)_DE_MLP(4)_DIS_FF(6)_L2_Weight(0.0) 
 
 three_traj represents we test the modle on trajectories with 3 modes; \
 EN_MLP(3) represents we deploy 3 layers MLP for Encoder; \
 DE_MLP(4) represents we deploy 4 layers MLP for Decoder; \
 DIS_FF(6) represents we deploy 6 layers Feedforward network for Discriminator; \
-L2_Weight(0.0) represents the ratio of L2 loss in our objective loss function is 0, namely we just use adversarial loss \
+L2_Weight(0.0) represents the ratio of L2 loss in our objective loss function is 0, namely we just use adversarial loss 
 
 
 ### Command Options
