@@ -68,7 +68,10 @@ class Encoder(nn.Module):
         self.h_dim = h_dim
         self.embedding_dim = embedding_dim
         self.num_layers = num_layers
-
+        
+        #################################################################################
+        #### Encoder Arch
+        #################################################################################
         self.encoder = nn.LSTM(
             embedding_dim, h_dim, num_layers, dropout=dropout
         )
@@ -125,12 +128,10 @@ class Decoder(nn.Module):
         self.pred_len = pred_len
         self.num_mlp_layers = num_mlp_layers
 
-#################################################################################
-#### Decoder Arch
-#################################################################################
-        ##TO DO Decoder -- Feedforward Architecture MG
-        # self.decoder = nn.Sequential(nn.Linear(h_dim + embedding_dim, self.pred_len*embedding_dim))
-        ##TO DO Decoder -- Feedforward Architecture CGS
+        #################################################################################
+        #### Decoder Arch
+        #################################################################################
+
         decoder_dims = [h_dim + embedding_dim] + [64 for i in range(self.num_mlp_layers - 2)] + [8*embedding_dim]
         self.decoder= make_mlp(
             decoder_dims,
@@ -444,12 +445,10 @@ class TrajectoryDiscriminator(nn.Module):
         )
 
 
-#################################################################################
-#### Decoder Arch
-#################################################################################
-        ## FOR GAN
-        # real_classifier_dims = [(obs_len + pred_len) * 2, 16, 8, 1]
-        #real_classifier_dims = [(obs_len + pred_len) * 2, 64, 64, 64, 1]
+        #################################################################################
+        #### Discriminator Arch
+        #################################################################################
+
         
         real_classifier_dims = [(obs_len + pred_len) * 2] + [64 for i in range(self.mlp_discriminator_layers-2)] + [1]
 

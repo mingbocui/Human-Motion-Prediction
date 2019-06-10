@@ -70,12 +70,12 @@ class Encoder(nn.Module):
         self.embedding_dim = embedding_dim
         self.num_layers = num_layers
 
-        ##Encoder -- Feedforward Architecture MG
-        # self.encoder = nn.Sequential(nn.Linear(embedding_dim*obs_len, h_dim))
+        #################################################################################
+        #### Encoder Arch
+        #################################################################################
         self.encoder = nn.LSTM(
             embedding_dim, h_dim, num_layers, dropout=dropout
         )
-
 
         # self.encoder = nn.Sequential(nn.Linear(embedding_dim*obs_len, h_dim), nn.Dropout(p=0.0))        
         self.spatial_embedding = nn.Linear(2, embedding_dim)
@@ -126,10 +126,10 @@ class Decoder(nn.Module):
         self.obs_len = obs_len
         self.pred_len = pred_len
 
-#################################################################################
-#### Decoder Arch
-#################################################################################
-        ##TO DO Decoder -- Feedforward Architecture MG
+        #################################################################################
+        #### Decoder Arch
+        #################################################################################
+
         decoder_dims = [h_dim + embedding_dim, 64, 64, 8*embedding_dim]
 
         self.decoder = nn.LSTM(
@@ -398,12 +398,10 @@ class TrajectoryDiscriminator(nn.Module):
         )
 
 
-#################################################################################
-#### Decoder Arch
-#################################################################################
-        ## FOR GAN
-        # real_classifier_dims = [(obs_len + pred_len) * 2, 16, 8, 1]
-        #real_classifier_dims = [(obs_len + pred_len) * 2, 64, 64, 64, 1]
+        #################################################################################
+        #### Discriminator Arch
+        #################################################################################
+
         real_classifier_dims = [(obs_len + pred_len) * 2] + [64 for i in range(self.mlp_discriminator_layers-2)] + [1]
 
         self.real_classifier = make_mlp(
@@ -412,7 +410,7 @@ class TrajectoryDiscriminator(nn.Module):
             batch_norm=batch_norm,
             dropout=dropout
         )
-##################################################################################
+
     def forward(self, traj, traj_rel, seq_start_end=None):
         """
         Inputs:

@@ -70,9 +70,9 @@ class Encoder(nn.Module):
         self.num_layers = num_layers
         self.num_mlp_layers = num_mlp_layers
 
-
-        ##Encoder -- Feedforward Architecture CGS
-        #self.encoder = nn.Sequential(nn.Linear(embedding_dim*obs_len, 4*h_dim), nn.Dropout(p=0.2),  nn.Linear(h_dim*4, h_dim))
+        #################################################################################
+        #### Encoder Arch
+        #################################################################################
         encoder_dims = [embedding_dim*obs_len] + [4*h_dim for i in range(self.num_mlp_layers-2)] + [h_dim]
         self.encoder = make_mlp(encoder_dims, activation='none', batch_norm=False, dropout=0.2)
       
@@ -123,13 +123,9 @@ class Decoder(nn.Module):
         self.pred_len = pred_len
         self.num_mlp_layers = num_mlp_layers
 
-#################################################################################
-#### Decoder Arch
-#################################################################################
-        ##TO DO Decoder -- Feedforward Architecture MG
-        # self.decoder = nn.Sequential(nn.Linear(h_dim + embedding_dim, self.pred_len*embedding_dim))
-        ##TO DO Decoder -- Feedforward Architecture CGS       
-        #decoder_dims = [h_dim + embedding_dim, 64, 64,8*embedding_dim]
+        #################################################################################
+        #### Decoder Arch
+        #################################################################################
         
         decoder_dims = [h_dim + embedding_dim] + [64 for i in range(self.num_mlp_layers - 2)] + [8*embedding_dim]
 
@@ -632,29 +628,9 @@ class TrajectoryDiscriminator(nn.Module):
             num_mlp_layers = self.num_mlp_encoder_layers
         )
 
-        # real_classifier_dims = [h_dim, mlp_dim, 1]
-        # self.real_classifier = make_mlp(
-        #     real_classifier_dims,
-        #     activation=activation,
-        #     batch_norm=batch_norm,
-        #     dropout=dropout
-        # )
-        # if d_type == 'global':
-        #     mlp_pool_dims = [h_dim + embedding_dim, mlp_dim, h_dim]
-        #     self.pool_net = PoolHiddenNet(
-        #         embedding_dim=embedding_dim,
-        #         h_dim=h_dim,
-        #         mlp_dim=mlp_pool_dims,
-        #         bottleneck_dim=h_dim,
-        #         activation=activation,
-        #         batch_norm=batch_norm
-        #     )
-        ## FOR MG
-        # real_classifier_dims = [(obs_len + pred_len) * 2, 8, 1]
-
-#################################################################################
-#### Decoder Arch
-#################################################################################
+        #################################################################################
+        #### Discriminato Arch
+        #################################################################################
         ## FOR GAN
        
         real_classifier_dims = [(obs_len + pred_len) * 2] + [64 for i in range(self.mlp_discriminator_layers-2)] + [1]
