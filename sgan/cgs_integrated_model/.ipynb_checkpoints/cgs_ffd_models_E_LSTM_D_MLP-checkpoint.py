@@ -5,9 +5,8 @@ from torch.autograd import Variable
 import numpy as np
 
 def make_mlp(dim_list, activation='relu', batch_norm=True, dropout=0):
+    
     layers = []
-    # batch_norm=True
-    dropout=0.0
     for dim_in, dim_out in zip(dim_list[:-2], dim_list[1:-1]):
         layers.append(nn.Linear(dim_in, dim_out))
         if batch_norm:
@@ -21,7 +20,6 @@ def make_mlp(dim_list, activation='relu', batch_norm=True, dropout=0):
             layers.append(nn.Dropout(p=dropout))
 
     layers.append(nn.Linear(dim_list[-2], dim_list[-1]))
-    # layers.append(nn.ReLU())
     return nn.Sequential(*layers)
 
 
@@ -71,16 +69,6 @@ class Encoder(nn.Module):
         self.embedding_dim = embedding_dim
         self.num_layers = num_layers
 
-
-        
-        ##Encoder -- Feedforward Architecture MG
-        # self.encoder = nn.Sequential(nn.Linear(embedding_dim*obs_len, h_dim))
-#################################################################################
-#### Decoder Arch
-#################################################################################
-        ##Encoder -- Feedforward Architecture CGS
-        #self.encoder = nn.Sequential(nn.Linear(embedding_dim*obs_len, 4*h_dim), nn.Dropout(p=0.2),  nn.Linear(h_dim*4, h_dim))
-#####################################################################################
         self.encoder = nn.LSTM(
             embedding_dim, h_dim, num_layers, dropout=dropout
         )
@@ -143,20 +131,13 @@ class Decoder(nn.Module):
         ##TO DO Decoder -- Feedforward Architecture MG
         # self.decoder = nn.Sequential(nn.Linear(h_dim + embedding_dim, self.pred_len*embedding_dim))
         ##TO DO Decoder -- Feedforward Architecture CGS
-        # self.decoder = nn.Sequential(nn.Linear(h_dim + embedding_dim, 4*embedding_dim), nn.Dropout(0.20), nn.Linear(4*embedding_dim, 8*embedding_dim))
-        # decoder_dims = [h_dim + embedding_dim, 4*embedding_dim, 8*embedding_dim]
-        # decoder_dims = [h_dim + embedding_dim, 64, 8*embedding_dim]
-        #decoder_dims = [h_dim + embedding_dim, 64, 64, 8*embedding_dim]
         decoder_dims = [h_dim + embedding_dim] + [64 for i in range(self.num_mlp_layers - 2)] + [8*embedding_dim]
-
-
         self.decoder= make_mlp(
             decoder_dims,
             activation=activation,
             batch_norm=True,
             dropout=dropout)
-        # self.decoder = nn.Sequential(nn.Linear(h_dim + embedding_dim, 8*embedding_dim))
-##########################################################################################
+
         if pooling_type:
             if pooling_type == 'pool_net':
                 self.pool_net = PoolHiddenNet(
@@ -177,14 +158,6 @@ class Decoder(nn.Module):
                     neighborhood_size=neighborhood_size,
                     grid_size=grid_size
                 )
-
-            # mlp_dims = [h_dim + bottleneck_dim, mlp_dim, h_dim]
-            # self.mlp = make_mlp(
-            #     mlp_dims,
-            #     activation=activation,
-            #     batch_norm=batch_norm,
-            #     dropout=dropout
-            # )
 
         self.spatial_embedding = nn.Linear(2, embedding_dim)
         self.hidden2pos = nn.Linear(embedding_dim, 2)
@@ -210,7 +183,7 @@ class Decoder(nn.Module):
         pred_traj_fake_rel = self.hidden2pos(decoder_output)
         pred_traj_fake_rel = pred_traj_fake_rel.contiguous().view(batch, pred_len, 2)
         return pred_traj_fake_rel
-#  parth generator
+
 class TrajectoryGenerator(nn.Module):
     def __init__(
         self, obs_len, pred_len, embedding_dim=64, encoder_h_dim=64,
@@ -477,6 +450,7 @@ class TrajectoryDiscriminator(nn.Module):
         ## FOR GAN
         # real_classifier_dims = [(obs_len + pred_len) * 2, 16, 8, 1]
         #real_classifier_dims = [(obs_len + pred_len) * 2, 64, 64, 64, 1]
+        
         real_classifier_dims = [(obs_len + pred_len) * 2] + [64 for i in range(self.mlp_discriminator_layers-2)] + [1]
 
         self.real_classifier = make_mlp(
@@ -485,7 +459,7 @@ class TrajectoryDiscriminator(nn.Module):
             batch_norm=batch_norm,
             dropout=dropout
         )
-##################################################################################
+
     def forward(self, traj, traj_rel, seq_start_end=None):
         """
         Inputs:

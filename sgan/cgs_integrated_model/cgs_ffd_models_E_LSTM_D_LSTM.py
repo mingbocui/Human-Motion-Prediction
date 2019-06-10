@@ -5,9 +5,8 @@ from torch.autograd import Variable
 import numpy as np
 
 def make_mlp(dim_list, activation='relu', batch_norm=True, dropout=0):
+    
     layers = []
-    # batch_norm=True
-    dropout=0.0
     for dim_in, dim_out in zip(dim_list[:-2], dim_list[1:-1]):
         layers.append(nn.Linear(dim_in, dim_out))
         if batch_norm:
@@ -71,16 +70,8 @@ class Encoder(nn.Module):
         self.embedding_dim = embedding_dim
         self.num_layers = num_layers
 
-
-        
         ##Encoder -- Feedforward Architecture MG
         # self.encoder = nn.Sequential(nn.Linear(embedding_dim*obs_len, h_dim))
-#################################################################################
-#### Decoder Arch
-#################################################################################
-        ##Encoder -- Feedforward Architecture CGS
-        #self.encoder = nn.Sequential(nn.Linear(embedding_dim*obs_len, 4*h_dim), nn.Dropout(p=0.2),  nn.Linear(h_dim*4, h_dim))
-#####################################################################################
         self.encoder = nn.LSTM(
             embedding_dim, h_dim, num_layers, dropout=dropout
         )
@@ -113,9 +104,6 @@ class Encoder(nn.Module):
         state_tuple = self.init_hidden(batch)
         output, state = self.encoder(obs_traj_embedding, state_tuple)
         final_h = state[0]
-        #print(obs_traj.shape)
-        #print(final_h.shape)
-        #print('final_h'+str(final_h.shape))
         return final_h
     
     
@@ -142,19 +130,11 @@ class Decoder(nn.Module):
 #### Decoder Arch
 #################################################################################
         ##TO DO Decoder -- Feedforward Architecture MG
-        # self.decoder = nn.Sequential(nn.Linear(h_dim + embedding_dim, self.pred_len*embedding_dim))
-        ##TO DO Decoder -- Feedforward Architecture CGS
-        # self.decoder = nn.Sequential(nn.Linear(h_dim + embedding_dim, 4*embedding_dim), nn.Dropout(0.20), nn.Linear(4*embedding_dim, 8*embedding_dim))
-        # decoder_dims = [h_dim + embedding_dim, 4*embedding_dim, 8*embedding_dim]
-        # decoder_dims = [h_dim + embedding_dim, 64, 8*embedding_dim]
         decoder_dims = [h_dim + embedding_dim, 64, 64, 8*embedding_dim]
-
 
         self.decoder = nn.LSTM(
             embedding_dim, h_dim, num_layers, dropout=dropout
         )
-
-
 
         self.spatial_embedding = nn.Linear(2, embedding_dim)
         self.hidden2pos = nn.Linear(h_dim, 2)

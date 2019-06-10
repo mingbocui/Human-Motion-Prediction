@@ -5,9 +5,8 @@ from torch.autograd import Variable
 import numpy as np
 
 def make_mlp(dim_list, activation='relu', batch_norm=True, dropout=0):
+    
     layers = []
-    # batch_norm=True
-    #dropout=0.0
     for dim_in, dim_out in zip(dim_list[:-2], dim_list[1:-1]):
         layers.append(nn.Linear(dim_in, dim_out))
         if batch_norm:
@@ -21,7 +20,6 @@ def make_mlp(dim_list, activation='relu', batch_norm=True, dropout=0):
             layers.append(nn.Dropout(p=dropout))
 
     layers.append(nn.Linear(dim_list[-2], dim_list[-1]))
-    # layers.append(nn.ReLU())
     return nn.Sequential(*layers)
 
 
@@ -73,26 +71,11 @@ class Encoder(nn.Module):
         self.num_mlp_layers = num_mlp_layers
 
 
-        
-        ##Encoder -- Feedforward Architecture MG
-        # self.encoder = nn.Sequential(nn.Linear(embedding_dim*obs_len, h_dim))
-#################################################################################
-#### Decoder Arch
-#################################################################################
         ##Encoder -- Feedforward Architecture CGS
         #self.encoder = nn.Sequential(nn.Linear(embedding_dim*obs_len, 4*h_dim), nn.Dropout(p=0.2),  nn.Linear(h_dim*4, h_dim))
         encoder_dims = [embedding_dim*obs_len] + [4*h_dim for i in range(self.num_mlp_layers-2)] + [h_dim]
         self.encoder = make_mlp(encoder_dims, activation='none', batch_norm=False, dropout=0.2)
-        print(self.encoder)
-        #self.encoder = nn.Sequential(nn.Linear(embedding_dim*obs_len, 4*h_dim), nn.Dropout(p=0.2),  nn.Linear(h_dim*4, h_dim))
-#####################################################################################
-        #encoder_dims =[embedding_dim*obs_len,4*h_dim,4*h_dim,4*h_dim,4*h_dim,4*h_dim,4*h_dim,4*h_dim,h_dim]
-        #self.encoder = make_mlp(encoder_dims, activation='relu', batch_norm=True, dropout=0)
-        
-
-
-
-        # self.encoder = nn.Sequential(nn.Linear(embedding_dim*obs_len, h_dim), nn.Dropout(p=0.0))        
+      
         self.spatial_embedding = nn.Linear(2, embedding_dim)
 
 
@@ -145,26 +128,17 @@ class Decoder(nn.Module):
 #################################################################################
         ##TO DO Decoder -- Feedforward Architecture MG
         # self.decoder = nn.Sequential(nn.Linear(h_dim + embedding_dim, self.pred_len*embedding_dim))
-        ##TO DO Decoder -- Feedforward Architecture CGS
-        # self.decoder = nn.Sequential(nn.Linear(h_dim + embedding_dim, 4*embedding_dim), nn.Dropout(0.20), nn.Linear(4*embedding_dim, 8*embedding_dim))
-        # decoder_dims = [h_dim + embedding_dim, 4*embedding_dim, 8*embedding_dim]
-        # decoder_dims = [h_dim + embedding_dim, 64, 8*embedding_dim]
-        
+        ##TO DO Decoder -- Feedforward Architecture CGS       
         #decoder_dims = [h_dim + embedding_dim, 64, 64,8*embedding_dim]
         
         decoder_dims = [h_dim + embedding_dim] + [64 for i in range(self.num_mlp_layers - 2)] + [8*embedding_dim]
-        
-        
-        #decoder_dims = [h_dim + embedding_dim, 64, 64,64,64,64,128,128,128,128,128,256,256,256,256,256,512,512,512,8*embedding_dim]
-        #decoder_dims = [h_dim + embedding_dim,6,8*embedding_dim]
 
         self.decoder= make_mlp(
             decoder_dims,
             activation=activation,
             batch_norm=True,
             dropout=dropout)
-        # self.decoder = nn.Sequential(nn.Linear(h_dim + embedding_dim, 8*embedding_dim))
-##########################################################################################
+
         if pooling_type:
             if pooling_type == 'pool_net':
                 self.pool_net = PoolHiddenNet(
@@ -186,13 +160,6 @@ class Decoder(nn.Module):
                     grid_size=grid_size
                 )
 
-            # mlp_dims = [h_dim + bottleneck_dim, mlp_dim, h_dim]
-            # self.mlp = make_mlp(
-            #     mlp_dims,
-            #     activation=activation,
-            #     batch_norm=batch_norm,
-            #     dropout=dropout
-            # )
 
         self.spatial_embedding = nn.Linear(2, embedding_dim)
         self.hidden2pos = nn.Linear(embedding_dim, 2)
@@ -502,10 +469,6 @@ class TrajectoryGenerator(nn.Module):
         else:
             input_dim = encoder_h_dim
 
-        # if self.mlp_decoder_needed():
-        #     mlp_decoder_context_dims = [
-        #         input_dim, mlp_dim, decoder_h_dim - self.noise_first_dim
-        #     ]
 
         if self.mlp_decoder_needed():
             mlp_decoder_context_dims = [
@@ -693,46 +656,15 @@ class TrajectoryDiscriminator(nn.Module):
 #### Decoder Arch
 #################################################################################
         ## FOR GAN
-        # real_classifier_dims = [(obs_len + pred_len) * 2, 16, 8, 1]
-        
-        #real_classifier_dims = [(obs_len + pred_len) * 2, 64, 64, 64, 1]
-        
+       
         real_classifier_dims = [(obs_len + pred_len) * 2] + [64 for i in range(self.mlp_discriminator_layers-2)] + [1]
-        print("LLLLLLLLLLLLLLLLLLLLLooooooooook here"+str(real_classifier_dims))
         
-        #real_classifier_dims = [(obs_len + pred_len) * 2, 64, 64, 64,128,128,128,128, 1]
-        #real_classifier_dims = [(obs_len + pred_len) * 2,1]
-
         self.real_classifier = make_mlp(
             real_classifier_dims,
             activation=activation,
             batch_norm=batch_norm,
             dropout=dropout
         )
-##################################################################################
-
-    # def forward(self, traj, traj_rel, seq_start_end=None):
-    #     """
-    #     Inputs:
-    #     - traj: Tensor of shape (obs_len + pred_len, batch, 2)
-    #     - traj_rel: Tensor of shape (obs_len + pred_len, batch, 2)
-    #     - seq_start_end: A list of tuples which delimit sequences within batch
-    #     Output:
-    #     - scores: Tensor of shape (batch,) with real/fake scores
-    #     """
-    #     final_h = self.encoder(traj_rel)
-    #     # Note: In case of 'global' option we are using start_pos as opposed to
-    #     # end_pos. The intution being that hidden state has the whole
-    #     # trajectory and relative postion at the start when combined with
-    #     # trajectory information should help in discriminative behavior.
-    #     if self.d_type == 'local':
-    #         classifier_input = final_h.squeeze()
-    #     else:
-    #         classifier_input = self.pool_net(
-    #             final_h.squeeze(), seq_start_end, traj[0]
-    #         )
-    #     scores = self.real_classifier(classifier_input)
-    #     return scores
 
     def forward(self, traj, traj_rel, seq_start_end=None):
         """

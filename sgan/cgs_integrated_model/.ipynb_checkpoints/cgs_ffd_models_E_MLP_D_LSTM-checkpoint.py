@@ -6,8 +6,6 @@ import numpy as np
 
 def make_mlp(dim_list, activation='relu', batch_norm=True, dropout=0):
     layers = []
-    # batch_norm=True
-    dropout=0.0
     for dim_in, dim_out in zip(dim_list[:-2], dim_list[1:-1]):
         layers.append(nn.Linear(dim_in, dim_out))
         if batch_norm:
@@ -21,7 +19,6 @@ def make_mlp(dim_list, activation='relu', batch_norm=True, dropout=0):
             layers.append(nn.Dropout(p=dropout))
 
     layers.append(nn.Linear(dim_list[-2], dim_list[-1]))
-    # layers.append(nn.ReLU())
     return nn.Sequential(*layers)
 
 
@@ -77,10 +74,7 @@ class Encoder(nn.Module):
         ##Encoder -- Feedforward Architecture CGS
         #self.encoder = nn.Sequential(nn.Linear(embedding_dim*obs_len, 4*h_dim), nn.Dropout(p=0.2),  nn.Linear(h_dim*4, h_dim))     
         encoder_dims = [embedding_dim*obs_len] + [4*h_dim for i in range(self.num_mlp_layers-2)] + [h_dim]
-        self.encoder = make_mlp(encoder_dims, 
-                                activation='relu', 
-                                batch_norm=True, 
-                                dropout=0.2)
+        self.encoder = make_mlp(encoder_dims, activation='none', batch_norm=False, dropout=0.2)
         self.spatial_embedding = nn.Linear(2, embedding_dim)
 
 
@@ -134,17 +128,12 @@ class Decoder(nn.Module):
         ##TO DO Decoder -- Feedforward Architecture MG
         # self.decoder = nn.Sequential(nn.Linear(h_dim + embedding_dim, self.pred_len*embedding_dim))
         ##TO DO Decoder -- Feedforward Architecture CGS
-        # self.decoder = nn.Sequential(nn.Linear(h_dim + embedding_dim, 4*embedding_dim), nn.Dropout(0.20), nn.Linear(4*embedding_dim, 8*embedding_dim))
-        # decoder_dims = [h_dim + embedding_dim, 4*embedding_dim, 8*embedding_dim]
-        # decoder_dims = [h_dim + embedding_dim, 64, 8*embedding_dim]
-        decoder_dims = [h_dim + embedding_dim, 64, 64, 8*embedding_dim]
 
+        decoder_dims = [h_dim + embedding_dim, 64, 64, 8*embedding_dim]
 
         self.decoder = nn.LSTM(
             embedding_dim, h_dim, num_layers, dropout=dropout
         )
-
-
 
         self.spatial_embedding = nn.Linear(2, embedding_dim)
         self.hidden2pos = nn.Linear(h_dim, 2)
@@ -179,11 +168,7 @@ class Decoder(nn.Module):
         pred_traj_fake_rel = torch.stack(pred_traj_fake_rel, dim=0)
         #print(pred_traj_fake_rel.shape)
         return pred_traj_fake_rel, state_tuple[0]
-    
 
-
-    
-# genarator with LSTM decoder
 class TrajectoryGenerator(nn.Module):
     def __init__(
         self, obs_len, pred_len, embedding_dim=64, encoder_h_dim=64,
